@@ -61,7 +61,7 @@ targets:
           name: ${var.schema}
           grants:
             - principal: 2f94fc12-db4e-429c-b967-57dfbda5026e   # sp-hml-run grava as tabelas do job
-              privileges: [USE_SCHEMA, SELECT, MODIFY, CREATE_TABLE]
+              privileges: [USE_SCHEMA, SELECT, MODIFY, CREATE_TABLE, CREATE_MATERIALIZED_VIEW]   # o pipeline cria materialized views
 
   # PRD: só o pipeline publica, depois da aprovação, e só a partir da main
   prod:
@@ -92,4 +92,4 @@ targets:
           name: ${var.schema}
           grants:
             - principal: 919c37b2-98f9-4669-94c7-09364f81d4c7   # sp-prd-run grava as tabelas do job
-              privileges: [USE_SCHEMA, SELECT, MODIFY, CREATE_TABLE]
+              privileges: [USE_SCHEMA, SELECT, MODIFY, CREATE_TABLE, CREATE_MATERIALIZED_VIEW]   # o pipeline cria materialized views
