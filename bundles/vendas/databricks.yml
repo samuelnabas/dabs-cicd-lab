@@ -49,7 +49,7 @@ targets:
       - service_principal_name: 84b85d6e-36b3-40fa-ba7e-8e54ee5d4e72  # sp-lab-deploy
         level: CAN_MANAGE
       - service_principal_name: 2f94fc12-db4e-429c-b967-57dfbda5026e  # sp-hml-run
-        level: CAN_VIEW
+        level: CAN_RUN    # o job dispara o refresh do pipeline como este SP
       - group_name: users
         level: CAN_VIEW
     variables:
@@ -80,7 +80,7 @@ targets:
       - service_principal_name: a5722803-ead7-45ea-aae6-6f1e65274ead  # sp-prd-deploy
         level: CAN_MANAGE
       - service_principal_name: 919c37b2-98f9-4669-94c7-09364f81d4c7  # sp-prd-run
-        level: CAN_VIEW
+        level: CAN_RUN    # o job dispara o refresh do pipeline como este SP
       - group_name: users
         level: CAN_VIEW
     variables:
