@@ -1,0 +1,95 @@
+# Declarative Automation Bundle: vendas
+bundle:
+  name: vendas
+  uuid: d6af3008-2a56-47dc-99df-0b0e538a6f9f
+
+include:
+  - resources/*.yml
+
+artifacts:
+  python_artifact:
+    type: whl
+    build: uv build --wheel
+
+variables:
+  catalog:
+    description: Catálogo do ambiente
+  schema:
+    description: Schema do ambiente
+    default: vendas
+
+targets:
+  # DEV: cada pessoa na própria pasta, prefixo [dev <usuário>], agendas pausadas
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://dbc-75429694-a9b7.cloud.databricks.com
+      profile: dbc-75429694-a9b7   # há 2 perfis no ~/.databrickscfg para este host
+    variables:
+      catalog: dev
+    resources:
+      schemas:
+        vendas:                      # mode development vira dev_<usuário>_vendas: um schema por pessoa
+          catalog_name: ${var.catalog}
+          name: ${var.schema}
+
+  # HML: só o pipeline publica (sp-lab-deploy); os jobs rodam como sp-hml-run
+  hml:
+    mode: production
+    presets:
+      name_prefix: "[hml] "          # mesmo workspace de PRD: evita nomes repetidos
+      trigger_pause_status: PAUSED   # HML roda quando o pipeline mandar
+    workspace:
+      host: https://dbc-75429694-a9b7.cloud.databricks.com
+      root_path: /Workspace/Homologacao/.bundle/${bundle.name}
+    run_as:
+      service_principal_name: 2f94fc12-db4e-429c-b967-57dfbda5026e    # sp-hml-run
+    permissions:
+      - service_principal_name: 84b85d6e-36b3-40fa-ba7e-8e54ee5d4e72  # sp-lab-deploy
+        level: CAN_MANAGE
+      - service_principal_name: 2f94fc12-db4e-429c-b967-57dfbda5026e  # sp-hml-run
+        level: CAN_VIEW
+      - group_name: users
+        level: CAN_VIEW
+    variables:
+      catalog: hml
+    resources:
+      schemas:
+        vendas:
+          catalog_name: ${var.catalog}
+          name: ${var.schema}
+          grants:
+            - principal: 2f94fc12-db4e-429c-b967-57dfbda5026e   # sp-hml-run grava as tabelas do job
+              privileges: [USE_SCHEMA, SELECT, MODIFY, CREATE_TABLE]
+
+  # PRD: só o pipeline publica, depois da aprovação, e só a partir da main
+  prod:
+    mode: production
+    git:
+      branch: main
+    presets:
+      name_prefix: "[prd] "
+      trigger_pause_status: PAUSED   # só no laboratório, para poupar a cota da Free Edition
+    workspace:
+      host: https://dbc-75429694-a9b7.cloud.databricks.com
+      root_path: /Workspace/Production/.bundle/${bundle.name}
+    run_as:
+      service_principal_name: 919c37b2-98f9-4669-94c7-09364f81d4c7    # sp-prd-run
+    permissions:
+      - service_principal_name: a5722803-ead7-45ea-aae6-6f1e65274ead  # sp-prd-deploy
+        level: CAN_MANAGE
+      - service_principal_name: 919c37b2-98f9-4669-94c7-09364f81d4c7  # sp-prd-run
+        level: CAN_VIEW
+      - group_name: users
+        level: CAN_VIEW
+    variables:
+      catalog: prod
+    resources:
+      schemas:
+        vendas:
+          catalog_name: ${var.catalog}
+          name: ${var.schema}
+          grants:
+            - principal: 919c37b2-98f9-4669-94c7-09364f81d4c7   # sp-prd-run grava as tabelas do job
+              privileges: [USE_SCHEMA, SELECT, MODIFY, CREATE_TABLE]
