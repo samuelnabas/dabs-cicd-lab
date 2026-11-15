@@ -68,3 +68,13 @@ with this project. It's also possible to interact with it directly using the CLI
    ```
    $ uv run pytest
    ```
+
+## Esteira de CI/CD
+
+O workflow `.github/workflows/vendas.yml` publica este bundle:
+
+1. **PR para a `main`:** o `pr-check` roda `validate` e `plan` de HML e falha se o plano apagar ou recriar algum recurso sem o label `permite-delete`.
+2. **Merge na `main`:** o `deploy-hml` publica em HML e roda o `sample_job` como `sp-hml-run`.
+3. **Aprovação no environment `prod`:** o `deploy-prod` publica em PRD. O job de PRD fica pausado e só roda com **Run now**.
+
+Não rode `bundle validate` nem `bundle plan` de `hml` ou `prod` na sua máquina: isso cria pastas do bundle com o seu usuário como dono. Esses targets só são publicados pelo CI.
